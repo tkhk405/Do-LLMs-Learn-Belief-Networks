@@ -1,0 +1,6 @@
+# Verified CPU probing environment (Python 3.12)
+numpy==1.26.4
+pandas==3.0.1
+scipy==1.13.1
+scikit-learn==1.8.0
+mord==0.7

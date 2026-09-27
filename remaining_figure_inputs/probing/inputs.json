@@ -1,0 +1,15 @@
+{
+  "gemma": {
+    "rho_dir": "gemma/scores",
+    "labels_dir": "gemma/labels",
+    "predictions_dir": "gemma/predictions",
+    "prediction_format": "npy"
+  },
+  "llama": {
+    "rho_dir": "llama/scores",
+    "labels_dir": "llama/labels",
+    "predictions_dir": "llama/predictions",
+    "prediction_format": "npy",
+    "top20_dir": "llama/top20"
+  }
+}

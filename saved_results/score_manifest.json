@@ -1,0 +1,98 @@
+[
+  {
+    "file": "gemma/scores/Defense_heatmap_rho_full.npy",
+    "sha256": "14bb6e0f30f6b5d1b046d9fc949058110095a1ef5e051a0041a7efd2d4d0938a"
+  },
+  {
+    "file": "gemma/scores/Defense_coef_full.npy",
+    "sha256": "5782cdab4d9f08b660118c34b990418cd745020400a5ffc6f5cca1dea75a3253"
+  },
+  {
+    "file": "gemma/scores/Social_heatmap_rho_full.npy",
+    "sha256": "d067e73f33eff3d49e264a5f935c125e65fdbdb2c6ef43426d70ecfaa4de1ae2"
+  },
+  {
+    "file": "gemma/scores/Social_coef_full.npy",
+    "sha256": "edb053f2b9a13c096d2deaa29b1bf79d3c14a71f43c00986488c1e10186f3b98"
+  },
+  {
+    "file": "gemma/scores/Public_heatmap_rho_full.npy",
+    "sha256": "c022dd9d3bb1d448126c6ce3ba90e6058f3b3747fc7fc62f7d04ea35ad592ffb"
+  },
+  {
+    "file": "gemma/scores/Public_coef_full.npy",
+    "sha256": "2feaef46f8fa365fd729982a234c29d32958a5bce785de4480ad599fd479172b"
+  },
+  {
+    "file": "gemma/scores/Fiscal_heatmap_rho_full.npy",
+    "sha256": "1697e5b54f02ef05aa2599f63c1e2d6c32a85d7c0ba48ddd6912fcad652dc1aa"
+  },
+  {
+    "file": "gemma/scores/Fiscal_coef_full.npy",
+    "sha256": "e1182735ebb2081304c1fac0977fc40c7d11bd9552d101ac36d0dbf1eb01162f"
+  },
+  {
+    "file": "gemma/scores/Nkorea_heatmap_rho_full.npy",
+    "sha256": "dbf83c8f4d7a6813dcabeb3b4759c4fba208a241552942d042a8506a635562d6"
+  },
+  {
+    "file": "gemma/scores/Nkorea_coef_full.npy",
+    "sha256": "ba5b1315396cce3d39e9a11791f81649187df9315af4a9e2dabd206880849768"
+  },
+  {
+    "file": "gemma/scores/Security_heatmap_rho_full.npy",
+    "sha256": "8508360e94baee194d309e37eb97bea3cdfb4e73dd7608d4fb54be9d218d3de6"
+  },
+  {
+    "file": "gemma/scores/Security_coef_full.npy",
+    "sha256": "b352ca4e1a5c9278161f0d7f9fb40734e15b8273dd26a5aa33ea119e728a7424"
+  },
+  {
+    "file": "llama/scores/Defense_heatmap_rho_full.npy",
+    "sha256": "d198561608d8bb127bfc0dba87bebafbf98087911dd2b24a9516db7dc8415bbe"
+  },
+  {
+    "file": "llama/scores/Defense_coef_full.npy",
+    "sha256": "7cd75a833b2fd9370d431be852d3fa02734d1e55af42d5c57f5c8bbe45f33637"
+  },
+  {
+    "file": "llama/scores/Social_heatmap_rho_full.npy",
+    "sha256": "774df1cc1d0d0740d76e7b29b67dc574814d1fc9ea772f6c0d7a246ae4adf706"
+  },
+  {
+    "file": "llama/scores/Social_coef_full.npy",
+    "sha256": "6b10384c1df99dd461a7dd837376b6f2590dfebc960994aa7701cd1f85b36b5e"
+  },
+  {
+    "file": "llama/scores/Public_heatmap_rho_full.npy",
+    "sha256": "e2490de27956fae61672dc8ee26a6691cf12e1a30abeac54b2e6fa5deb2869de"
+  },
+  {
+    "file": "llama/scores/Public_coef_full.npy",
+    "sha256": "24accb7606c87f4a02f7523ef62c3c506662810b7c37cd636b793c4be26f4fde"
+  },
+  {
+    "file": "llama/scores/Fiscal_heatmap_rho_full.npy",
+    "sha256": "a68b255ff59440100a234911d9710d591087316cd7b274cde7674c239db0b5f9"
+  },
+  {
+    "file": "llama/scores/Fiscal_coef_full.npy",
+    "sha256": "aadafb5deb9b418e4c0873181f6bc9871390cfd6b204243dac590bb4b6a027ee"
+  },
+  {
+    "file": "llama/scores/Nkorea_heatmap_rho_full.npy",
+    "sha256": "d50a4b33ba5b509b6affe5c1e015f54b5b996d55be3777121ba45d5a3e9ec1c8"
+  },
+  {
+    "file": "llama/scores/Nkorea_coef_full.npy",
+    "sha256": "a4076c734a41d56dbd305cf1bf322942a5bf29736b3519a9ddbc6ed4eb1c6dba"
+  },
+  {
+    "file": "llama/scores/Security_heatmap_rho_full.npy",
+    "sha256": "41568a726df11135ce3784ea5c5df631c539b3e1fda0b2a0795806596424a137"
+  },
+  {
+    "file": "llama/scores/Security_coef_full.npy",
+    "sha256": "8e7ab2d9b473d098d4a996ccb341f9385d47edfb702a8f1efc01c36783fd474b"
+  }
+]

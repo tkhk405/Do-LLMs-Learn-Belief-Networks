@@ -1,0 +1,46 @@
+[
+  {
+    "file": "gemma/transfer.csv",
+    "sha256": "a9aa949ff4924461c2afa71a6c4437f00f6db265fe73783bf13f8e0406f9b012"
+  },
+  {
+    "file": "gemma/cosine.csv",
+    "sha256": "040c0a033bd529062a553b4558f3968b3dccbd7776760bb01d3dd6de65526e81"
+  },
+  {
+    "file": "gemma/elected.csv",
+    "sha256": "c1b399e7d9315c4d5b9f0b20bed31d694b2827e038015747b798a37622d90529"
+  },
+  {
+    "file": "gemma/all_candidates.csv",
+    "sha256": "ae55454cd492aa0b501812d3b13b3351093276acce2d1c41e6cd487633f13eee"
+  },
+  {
+    "file": "gemma/output.csv",
+    "sha256": "00322ff34458e354962073624952e7ae00061f896bfe9b2a0f7bcd5a710f1c87"
+  },
+  {
+    "file": "llama/transfer.csv",
+    "sha256": "78a3b3c9f7b1f6b880cb9d83857748cc581550dfc582cf32b519694c66c8ab75"
+  },
+  {
+    "file": "llama/cosine.csv",
+    "sha256": "f8c0713b46a000463341e26eda620b4656d1105c3c5a14ae0e56dfa5afe5eebf"
+  },
+  {
+    "file": "llama/elected.csv",
+    "sha256": "2784f65228d6f1e695cd12ac9c66304fc2019b1f01056a14c478f323a78ccbbb"
+  },
+  {
+    "file": "llama/all_candidates.csv",
+    "sha256": "c7b15dbc2162f64adcbb3e8c7b076b3ccd4f63b490e0a5dc2f63a149bf3ce8c7"
+  },
+  {
+    "file": "llama/output.csv",
+    "sha256": "0de7bdc6e64bff2f516e0c0f5e4b9713392c167a259592e4116f0311fdfdccbe"
+  },
+  {
+    "file": "llama/symmetric.csv",
+    "sha256": "a7d2c3708d3c5086fff7674b472971e8c08105f30bd68883dbed3086f05902a6"
+  }
+]

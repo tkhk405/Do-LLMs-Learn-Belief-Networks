@@ -1,0 +1,13 @@
+heldout_generator,comparison,mantel_spearman,p_one_sided
+GPT,cross-split vs pooled original cosine,0.9749999999999999,0.001388888888888889
+GPT,cross-split cosine vs UTAS elected,0.8571428571428571,0.005555555555555556
+GPT,cross-split cosine vs UTAS all candidates,0.7142857142857142,0.018055555555555554
+Claude,cross-split vs pooled original cosine,1.0,0.001388888888888889
+Claude,cross-split cosine vs UTAS elected,0.8499999999999999,0.005555555555555556
+Claude,cross-split cosine vs UTAS all candidates,0.6249999999999999,0.019444444444444445
+Gemini,cross-split vs pooled original cosine,0.9964285714285712,0.001388888888888889
+Gemini,cross-split cosine vs UTAS elected,0.8535714285714284,0.005555555555555556
+Gemini,cross-split cosine vs UTAS all candidates,0.6285714285714286,0.019444444444444445
+THREE_FOLD_MEAN,cross-split vs pooled original cosine,0.9964285714285712,0.001388888888888889
+THREE_FOLD_MEAN,cross-split cosine vs UTAS elected,0.8535714285714284,0.005555555555555556
+THREE_FOLD_MEAN,cross-split cosine vs UTAS all candidates,0.6285714285714286,0.019444444444444445

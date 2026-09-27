@@ -1,171 +1,134 @@
-"""
-Activation Vector Extraction (Gemma-2-Llama-Swallow-9b)
-
-Extract activation vectors from each layer's attention heads of
-Gemma-2-Llama-Swallow-9b-pt-v0.1.
-
-- Model: tokyotech-llm/Gemma-2-Llama-Swallow-9b-pt-v0.1
-- Architecture: 42 layers x 16 heads x 256 dims/head
-- Method: Forward hook on self_attn.o_proj input (before linear projection)
-- Token: Last token of each sequence
-- Output shape: (num_samples, 16, 256)
-
-Usage:
-    git clone https://github.com/tkhk405/Policy-Preference-Structure-Embedded-in-LLMs.git
-    cd Policy-Preference-Structure-Embedded-in-LLMs/code
-    python extract_activations.py
-"""
-
-import torch
-import pandas as pd
-import numpy as np
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from tqdm import tqdm
+"""Extract o_proj input activations; smoke mode by default, no API generation."""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
 import os
-import gc
+os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF','expandable_segments:True')
+from pathlib import Path
+import argparse,json,hashlib,importlib.metadata
+import numpy as np
+from common.configuration import ROOT,load_paths
+from common.data_loading import load_statements
+from common.constants import ISSUES,THEMES
 
-# ==============================================================================
-# Path settings
-# ==============================================================================
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+def digest(path):
+    h=hashlib.sha256()
+    with path.open('rb') as f:
+        for chunk in iter(lambda:f.read(1024*1024),b''):h.update(chunk)
+    return h.hexdigest()
 
-INPUT_DIR = os.path.join(REPO_ROOT, "data")
-OUTPUT_DIR = os.path.join(REPO_ROOT, "output", "activation_vectors")
+def save_json(path,value):
+    tmp=path.with_suffix('.tmp.json');tmp.write_text(json.dumps(value,indent=2));tmp.replace(path)
 
-def ensure_output_dir():
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-# ==============================================================================
-# Dataset definitions (6 policy issues)
-# ==============================================================================
-DATASETS = {
-    "Defense":         ("defense.csv",         "Defense"),
-    "Social Welfare":  ("social_welfare.csv",  "Social"),
-    "Public Works":    ("public_works.csv",    "Public"),
-    "Fiscal Stimulus": ("fiscal_stimulus.csv", "Fiscal"),
-    "North Korea":     ("north_korea.csv",     "Nkorea"),
-    "Security":        ("public_safety.csv",   "Security"),
-}
-
-# ==============================================================================
-# Load model
-# ==============================================================================
-MODEL_ID = "tokyotech-llm/Gemma-2-Llama-Swallow-9b-pt-v0.1"
-
-def load_model():
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.float16,
-        bnb_4bit_use_double_quant=True,
-    )
-
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL_ID,
-        quantization_config=bnb_config,
-        device_map="auto",
-        trust_remote_code=True,
-    )
-
-    num_layers = model.config.num_hidden_layers   # 42
-    num_heads = model.config.num_attention_heads  # 16
-    return tokenizer, model, num_layers, num_heads
-
-# ==============================================================================
-# Hook function
-# ==============================================================================
-def get_single_layer_hook(num_heads, activation_store):
-    """Hook to capture o_proj input (before linear projection), split by head."""
-
-    def hook(module, input, output):
-        hidden_states = input[0]
-        input_dim = hidden_states.shape[-1]
-        head_dim = input_dim // num_heads
-
-        # Extract last token and reshape into per-head vectors
-        last_token = hidden_states[:, -1, :]
-        batch_size = last_token.shape[0]
-        reshaped = last_token.view(batch_size, num_heads, head_dim)
-        activation_store.append(reshaped.detach().cpu().numpy())
-
-    return hook
-
-# ==============================================================================
-# Main loop (6 issues x 42 layers)
-# ==============================================================================
 def main():
-    ensure_output_dir()
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
-
-    tokenizer, model, num_layers, num_heads = load_model()
-
-    for theme_name, (csv_file, save_prefix) in DATASETS.items():
-        print(f"\n{'=' * 60}")
-        print(f"Issue: {theme_name}")
-        print(f"{'=' * 60}")
-
-        gc.collect()
-        torch.cuda.empty_cache()
-
-        # Load data
-        file_path = os.path.join(INPUT_DIR, csv_file)
-        if not os.path.exists(file_path):
-            print(f"File not found: {file_path}")
-            continue
-
-        df = pd.read_csv(file_path)
-        texts = df['Generated_Text'].tolist()
-        print(f"Samples: {len(texts)}")
-
-        # Extract vectors layer by layer
-        for layer_idx in tqdm(range(num_layers), desc=f"[{save_prefix}]"):
-            save_path = os.path.join(OUTPUT_DIR, f"{save_prefix}_layer_{layer_idx:02d}.npy")
-
-            # Skip if already computed
-            if os.path.exists(save_path):
+    global model,tokenizer,NUM_HEADS,HEAD_DIM,CONCAT_DIM,MAX_LENGTH,SAVE_DTYPE
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--model',choices=['gemma','llama'],required=True)
+    p.add_argument('--config');p.add_argument('--mode',choices=['smoke','full'],default='smoke')
+    p.add_argument('--revision',help='Hugging Face commit; required for Gemma because its original commit was not recorded')
+    p.add_argument('--plan-only',action='store_true',help='Validate inputs and print extraction settings without loading a model')
+    args=p.parse_args();paths=load_paths(args.config)
+    settings=json.loads((ROOT/'config/extraction.json').read_text());shape=settings[args.model]
+    model_id=json.loads((ROOT/'config/models.json').read_text())[args.model]
+    revision=args.revision or shape['model_revision']
+    if not revision:raise ValueError('Specify an explicit --revision for Gemma; do not silently use a moving model version')
+    frames,sources=load_statements(paths['synthetic_statements_dir'])
+    layers=list(range(2 if args.mode=='smoke' else shape['layers']));n=16 if args.mode=='smoke' else 4320
+    specification={'model':model_id,'revision':revision,'mode':args.mode,'layers':layers,'rows_per_issue':n,'heads':shape['heads'],'head_dim':shape['head_dim'],'batch_size':8,'max_length':4096,'padding_side':'left','input_sha256':{k:digest(v) for k,v in sources.items()},'script_sha256':digest(Path(__file__)),'kernel_sha256':digest(Path(__file__))}
+    if args.plan_only:
+        print(json.dumps(specification,indent=2));return
+    import torch
+    from transformers import AutoModelForCausalLM,AutoTokenizer,BitsAndBytesConfig
+    if not torch.cuda.is_available():raise RuntimeError('CUDA GPU required; no CPU fallback')
+    if args.model=='llama' and 'A100' not in torch.cuda.get_device_name(0):
+        raise RuntimeError('The analyzed Llama protocol requires an A100 GPU')
+    out=paths['output_dir']/'activations'/args.model/args.mode
+    manifest=out/'extraction_manifest.json'
+    if out.exists() and not manifest.exists():raise ValueError('Output exists without manifest; choose a new output_dir')
+    previous=json.loads(manifest.read_text()) if manifest.exists() else None
+    versions={k:importlib.metadata.version(k) for k in ['torch','transformers','tokenizers','accelerate','bitsandbytes','numpy']}
+    specification['versions']=versions
+    specification['gpu']=torch.cuda.get_device_name(0)
+    if previous and previous['specification']!=specification:raise ValueError('Run settings changed; choose a new output_dir')
+    quant=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)
+    tokenizer=AutoTokenizer.from_pretrained(model_id,revision=revision);tokenizer.padding_side='left'
+    if tokenizer.pad_token is None:tokenizer.pad_token=tokenizer.eos_token
+    model=AutoModelForCausalLM.from_pretrained(model_id,revision=revision,quantization_config=quant,device_map='auto',trust_remote_code=True)
+    if model.training:raise ValueError('Model must be in evaluation mode')
+    actual=(model.config.num_hidden_layers,model.config.num_attention_heads,getattr(model.config,'head_dim',model.config.hidden_size//model.config.num_attention_heads))
+    if actual!=(shape['layers'],shape['heads'],shape['head_dim']):raise ValueError('Unexpected model architecture')
+    effective={'quantization':quant.to_dict(),'attention':model.config._attn_implementation,'use_cache':model.config.use_cache,'tokenizer_sha256':hashlib.sha256(tokenizer.backend_tokenizer.to_str().encode()).hexdigest()}
+    if previous and previous['effective']!=effective:raise ValueError('Effective model settings changed')
+    state=previous or {'specification':specification,'effective':effective,'outputs':{}}
+    out.mkdir(parents=True,exist_ok=True);save_json(manifest,state)
+    model=model;tokenizer=tokenizer;NUM_HEADS=shape['heads'];HEAD_DIM=shape['head_dim'];CONCAT_DIM=shape['heads']*shape['head_dim'];MAX_LENGTH=4096;SAVE_DTYPE=np.float16
+    for issue in ISSUES:
+        texts=frames[issue].Generated_Text.iloc[:n].tolist()
+        for layer in layers:
+            name=f'{THEMES[issue]["vec"]}_layer_{layer:02d}.npy';path=out/name
+            if name in state['outputs']:
+                if not path.exists() or digest(path)!=state['outputs'][name]:raise ValueError('Saved activation hash mismatch')
                 continue
+            result=extract_layer(texts,layer,8)
+            if not np.isfinite(result).all():raise ValueError('Nonfinite activation')
+            tmp=path.with_suffix('.tmp.npy');np.save(tmp,result);tmp.replace(path)
+            state['outputs'][name]=digest(path);save_json(manifest,state)
+            print(f'{len(state["outputs"])}/{6*len(layers)} layers complete',flush=True)
+    print('Extraction complete')
 
-            # Register hook
-            current_layer_activations = []
-            layer_module = model.model.layers[layer_idx].self_attn.o_proj
-            handle = layer_module.register_forward_hook(
-                get_single_layer_hook(num_heads, current_layer_activations)
-            )
+def last_nonpadding_indices(attention_mask: torch.Tensor) -> torch.Tensor:
+    import torch
+    if attention_mask.ndim != 2 or not torch.all(attention_mask.sum(dim=1) > 0):
+        raise ValueError('Every sample must contain at least one non-padding token.')
+    seq_len = attention_mask.shape[1]
+    return seq_len - 1 - attention_mask.flip(dims=[1]).long().argmax(dim=1)
 
-            # Batch inference
-            for i in range(0, len(texts), 8):
-                batch = texts[i:i+8]
-                inputs = tokenizer(
-                    batch,
-                    return_tensors="pt",
-                    padding=True,
-                    truncation=True,
-                    max_length=4096,
-                ).to(model.device)
+def extract_layer(texts: list[str], layer_idx: int, batch_size: int) -> np.ndarray:
+    import torch
+    from tqdm.auto import tqdm
+    state = {'attention_mask': None, 'chunks': [], 'calls': 0}
 
-                with torch.no_grad():
-                    model(**inputs)
-
-                del inputs, batch
-                torch.cuda.empty_cache()
-
-            handle.remove()
-
-            # Save: (num_samples, 16, 256)
-            layer_data = np.concatenate(current_layer_activations, axis=0)
-            np.save(save_path, layer_data)
-
-            del layer_data, current_layer_activations
-            gc.collect()
+    def o_proj_hook(module, inputs, output):
+        hidden_states = inputs[0]
+        mask = state['attention_mask']
+        if mask is None:
+            raise RuntimeError('attention_mask was not set before the forward pass')
+        if hidden_states.shape[-1] != CONCAT_DIM:
+            raise ValueError(f'Layer {layer_idx}: expected last dimension {CONCAT_DIM}, got {hidden_states.shape[-1]}')
+        mask = mask.to(hidden_states.device)
+        last_idx = last_nonpadding_indices(mask)
+        batch_idx = torch.arange(hidden_states.shape[0], device=hidden_states.device)
+        if not torch.all(mask[batch_idx, last_idx] == 1):
+            raise RuntimeError('A padding position was selected')
+        if not torch.all(last_idx == hidden_states.shape[1] - 1):
+            raise RuntimeError('Left padding required for Gemma-matched readout')
+        last_token = hidden_states[:, -1, :]
+        per_head = last_token.reshape(hidden_states.shape[0], NUM_HEADS, HEAD_DIM)
+        state['chunks'].append(per_head.detach().cpu().numpy())
+        state['calls'] += 1
+    layer_module = model.model.layers[layer_idx].self_attn.o_proj
+    handle = layer_module.register_forward_hook(o_proj_hook)
+    try:
+        for start in tqdm(range(0, len(texts), batch_size), desc=f'layer {layer_idx:02d} batches', leave=False):
+            batch = texts[start:start + batch_size]
+            encoded = tokenizer(batch, return_tensors='pt', padding=True, truncation=True, max_length=MAX_LENGTH)
+            encoded = encoded.to(model.device)
+            state['attention_mask'] = encoded['attention_mask']
+            with torch.no_grad():
+                model(**encoded)
+            state['attention_mask'] = None
+            del encoded, batch
             torch.cuda.empty_cache()
+    finally:
+        handle.remove()
+    expected_calls = (len(texts) + batch_size - 1) // batch_size
+    if state['calls'] != expected_calls:
+        raise RuntimeError(f'Layer {layer_idx}: hook calls={state['calls']}, expected={expected_calls}')
+    result = np.concatenate(state['chunks'], axis=0).astype(SAVE_DTYPE, copy=False)
+    expected_shape = (len(texts), NUM_HEADS, HEAD_DIM)
+    if result.shape != expected_shape:
+        raise ValueError(f'Layer {layer_idx}: expected {expected_shape}, got {result.shape}')
+    return result
 
-        print(f"{theme_name} done")
-
-    print("\nAll issues completed")
-
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':main()

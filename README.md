@@ -1,183 +1,92 @@
-# Do LLMs learn belief networks?
+# Policy stance representations in language models: analysis code
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19726746.svg)](https://doi.org/10.5281/zenodo.19726746)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-
-Code and data for the paper:
-
-**Do LLMs learn belief networks? Evidence from cross-issue correlations in policy stances**
-
-Takahiko Shigemasa and Takuma Tanaka (Shiga University)
-
-## Overview
-
-This repository provides the code and synthetic data for the paper, which examines whether large language models (LLMs) learn belief networks — systematic associations among attitudes across policy issues — from large-scale text corpora. Stance directions for six policy issues are estimated by probing the internal representations of a transformer-based LLM, and the cross-issue alignment among these directions is compared with cross-issue correlations among Japanese Diet members' policy stances from the Taniguchi-Asahi Survey (UTAS).
-
-## Repository Structure
-
-```
-├── data/                          # Synthetic political speech datasets (6 issues)
-│   ├── defense.csv
-│   ├── social_welfare.csv
-│   ├── public_works.csv
-│   ├── fiscal_stimulus.csv
-│   ├── north_korea.csv
-│   └── public_safety.csv
-├── code/
-│   ├── generate_synthetic_data.py  # Generate synthetic speeches via LLM APIs
-│   ├── extract_activations.py      # Extract activation vectors from Gemma-2-Llama-Swallow-9b
-│   ├── probing.py                  # Ordinal logistic regression probing (LogisticAT)
-│   ├── transfer_analysis.py        # Cross-issue transfer performance analysis
-│   ├── cosine_similarity.py        # Cosine similarity of sigma-standardized direction vectors
-│   ├── baseline_analysis.py        # Baseline: direct policy stance elicitation from LLMs
-│   └── mantel_test.py              # Mantel test for matrix comparison
-└── requirements.txt
-```
+This repository organizes the analysis into 12 Python entry points with shared
+utilities. Saved numerical inputs are included for reproducing the figures and
+S3–S13 Tables without API calls, model downloads or access to individual UTAS records.
 
 ## Setup
 
-```bash
-git clone https://github.com/tkhk405/Do-LLMs-Learn-Belief-Networks.git
-cd Do-LLMs-Learn-Belief-Networks
-pip install -r requirements.txt
+Use Python 3.12. From this directory:
+
+```sh
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-saved-results-verified.txt
 ```
 
-## Pipeline
+These saved-result dependencies were verified on macOS arm64. Arial is required
+for identical figure typography and is not bundled. Other fonts/platforms may
+change the layout. Training and GPU work use separate requirements; see
+[environments](docs/environments.md).
 
-The synthetic speech data is already provided in `data/`. To reproduce the analysis from the activation extraction step onward, follow steps 2-7 below. Steps 1 and 6 require API keys and are optional if the provided data is used.
+## Reproduce figures and tables
 
-```bash
-cd code
+Run the following from the repository root, using fresh output directories:
+
+```sh
+python code/silicon_sampling.py figures --inputs comparison_inputs/inputs.json --output results/silicon
+python code/mantel_test.py figures --inputs comparison_inputs/inputs.json --output results/comparison
+python code/probing.py figures --inputs remaining_figure_inputs/probing/inputs.json --output results/probing
+python code/generator_heldout.py figures --results remaining_figure_inputs/heldout --output results/heldout
+python code/probing.py tables --gemma-scores saved_results/gemma/scores --llama-scores saved_results/llama/scores --output results/S3_S9
+python code/sensitivity_analysis.py table --gemma-summary table_inputs/gemma/sensitivity_summary.csv --llama-summary table_inputs/llama/sensitivity_summary.csv --gemma-main table_inputs/gemma/matrix_comparisons.csv --llama-main table_inputs/llama/matrix_comparisons.csv --output results/S10
+python code/party_analysis.py table --party table_inputs/party --output results/S11
+python code/period_analysis.py tables --periods table_inputs/periods --release table_inputs/release --output results/period_tables
+python code/utas_recall.py tables --recall table_inputs/recall --output results/recall_tables
+python code/utas_recall.py assemble --a results/period_tables/S13_Table_A.csv --b results/recall_tables/S13_Table_B.csv --c results/recall_tables/S13_Table_C.csv --output results/S13
 ```
 
-### Step 1: Data generation (optional)
+The first four commands reproduce Fig1–6 and S1–S10 Fig. The remaining commands
+export S3–S13 Tables as CSV/Markdown, including the combined S13 panels.
+Original Table1–3 and S1–S2 Table manuscript sources and captions are not bundled.
 
-Generate synthetic political speeches using LLM APIs. This step is optional as the generated data is already included in `data/`.
+## Analysis files
 
-```bash
-export OPENAI_API_KEY="your-key"
-export GOOGLE_API_KEY="your-key"
-export ANTHROPIC_API_KEY="your-key"
-python generate_synthetic_data.py
-```
+| File in code/ | Analysis | Guide |
+|---|---|---|
+| generate_synthetic_data.py | Requests, batch submission, collection and corpus assembly | [Generation](docs/synthetic.md) |
+| extract_activations.py | Model activation extraction and resumable checkpoints | [Extraction](docs/extraction.md) |
+| probing.py | Probes, head selection, tables and figures | [Probing](docs/probing.md) |
+| transfer_analysis.py | Cross-issue transfer performance | [Internal comparisons](docs/internal_comparisons.md) |
+| cosine_similarity.py | Stance-direction cosine similarity | [Internal comparisons](docs/internal_comparisons.md) |
+| mantel_test.py | Matrix comparisons and figures | [Internal comparisons](docs/internal_comparisons.md) |
+| generator_heldout.py | Generator-held-out training and evaluation | [Held-out analysis](docs/generator_heldout.md) |
+| sensitivity_analysis.py | Resampling with fixed heads and probe refitting | [Sensitivity](docs/sensitivity.md) |
+| party_analysis.py | Party/year means and residual comparisons | [Party analysis](docs/party.md) |
+| period_analysis.py | Survey-period comparisons | [Periods](docs/periods.md) |
+| utas_recall.py | Recall generation, judging, scoring and tables | [Recall](docs/recall.md) |
+| silicon_sampling.py | Response generation, matrix comparison and figures | [Silicon sampling](docs/silicon.md) |
 
-### Step 2: Activation extraction (GPU required)
+Run `python code/FILE.py --help` and the relevant operation's `--help` for arguments.
+Model configurations and recorded generation profiles are in config/. Use the
+exact configuration for the relevant experiment. Explicit model/revision arguments
+must be supplied where required; the code does not choose a substitute model.
 
-Extract activation vectors from [Gemma-2-Llama-Swallow-9b-pt-v0.1](https://huggingface.co/tokyotech-llm/Gemma-2-Llama-Swallow-9b-pt-v0.1). Requires a GPU with at least 24 GB VRAM (the model is loaded in 4-bit quantization).
+## Included data and local inputs
 
-```bash
-python extract_activations.py
-```
+- saved_results/: saved probe scores and sensitivity results.
+- comparison_inputs/: numerical matrices for comparison figures.
+- remaining_figure_inputs/: probing and held-out numerical figure inputs.
+- table_inputs/: aggregate numerical summaries for table export.
+- config/: settings, examples and the study's attribute mappings.
 
-Output: `output/activation_vectors/{Theme}_layer_{XX}.npy` (252 files, ~8 GB total)
+Official UTAS records, question wording/translations, target counts,
+respondent-linked generated answers, synthetic statement text, manuscript sources,
+API credentials and model weights are excluded. Full recalculation requires locally
+supplied inputs; see [local inputs](docs/local_inputs.md). Saved-result reproduction
+does not constitute a new full training or generation run.
 
-### Step 3: Probing
+Code licensing is stated in LICENSE. Third-party materials are not relicensed;
+see NOTICE.md. FILE_LIST.txt and FILE_MANIFEST.json list the distributed files and
+SHA-256 hashes (the manifest excludes itself).
 
-Train ordinal logistic regression (LogisticAT) probes on each of the 672 layer-head pairs (42 layers x 16 heads) with 5-fold stratified cross-validation.
-For each layer-head pair, the reported Spearman correlation is the mean of the validation-fold Spearman correlations.
-After the regularization parameter is selected by cross-validation, the final probe is refit on all available samples for that issue, layer, and head; the resulting coefficients and thresholds are saved for the downstream transfer analysis.
+## Earlier repository version
 
-```bash
-python probing.py
-```
+The existing data/ directory is retained unchanged from the earlier repository.
+It is not part of the newly assembled numerical-input distribution described above
+and is not used by the saved-result commands in this README. The earlier analysis
+code remains accessible in Git history. The previous baseline_analysis.py is
+replaced by silicon_sampling.py for the revised analysis.
 
-Output: `output/probing_results/` (Spearman correlations, coefficients, thresholds, predictions)
-
-### Step 4: Transfer analysis
-
-Evaluate cross-issue transfer performance using the top-20 heads by average Spearman correlation across all 6 issues.
-The transfer score applies the source-issue coefficient vector to per-head standardized target-issue activation vectors (each dimension centered to zero mean and unit variance across the target-issue samples; see `transfer_analysis.py:111-113`) and computes the Spearman correlation between the resulting linear scores and the target-issue stance labels.
-Issue-specific ordinal thresholds are not used in this transfer step.
-
-```bash
-python transfer_analysis.py
-```
-
-Output: `output/transfer_results/transfer_matrix.csv`
-
-### Step 5: Cosine similarity
-
-Compute cosine similarity between sigma-standardized direction vectors using the union of per-issue top-20 heads.
-
-```bash
-python cosine_similarity.py
-```
-
-Output: `output/cosine_results/cosine_similarity_matrix.csv`
-
-### Step 6: Baseline analysis (optional, requires API keys)
-
-Query LLMs directly for policy stances as a comparison baseline (100 trials per model, temperature = 0.8).
-
-```bash
-export OPENAI_API_KEY="your-key"
-export GOOGLE_API_KEY="your-key"
-export ANTHROPIC_API_KEY="your-key"
-python baseline_analysis.py
-```
-
-Output: `output/baseline_results/baseline_corr_*.csv`
-
-### Step 7: Mantel test
-
-Compare the transfer, cosine similarity, and baseline matrices with the Taniguchi-Asahi parliamentary survey correlation matrices via exact Mantel test (6! = 720 permutations).
-
-The Taniguchi-Asahi Survey data is not included due to redistribution restrictions. To run the full comparison, set `TANIGUCHI_ELECTED_PATH` and `TANIGUCHI_ALL_CANDIDATES_PATH` to your local CSV files. For backward compatibility, `TANIGUCHI_PATH` is treated as the elected-member CSV path when `TANIGUCHI_ELECTED_PATH` is not set. Without UTAS data, only the transfer vs. cosine similarity comparison is performed.
-
-```bash
-export TANIGUCHI_ELECTED_PATH="/path/to/elected_members.csv"
-export TANIGUCHI_ALL_CANDIDATES_PATH="/path/to/all_candidates.csv"
-python mantel_test.py
-```
-
-Output: `output/mantel_results/mantel_test_results.csv`
-
-## Data
-
-The `data/` directory contains synthetic political speeches generated by three LLMs (GPT-5.1, Claude Opus 4.5, and Gemini 3.0). Each CSV contains 4,320 samples with the following columns:
-
-| Column | Description |
-|--------|-------------|
-| `ID_Number` | Sample ID |
-| `Topic` | Policy issue key |
-| `Stance_Label` | Stance label in Japanese |
-| `Stance_Value` | Stance value (1=Agree to 5=Disagree) |
-| `Role_Party` | Party role |
-| `Role_Attr` | Attribute |
-| `Target` | Target audience |
-| `Situation` | Speaking situation |
-| `Original_ID` | Model-specific ID |
-| `Generated_Text` | Generated speech text |
-
-## External Data
-
-The Taniguchi-Asahi Survey (UTAS) data is not included in this repository due to redistribution restrictions. See: https://www.masaki.j.u-tokyo.ac.jp/utas/utasindex_en.html
-
-## Models
-
-For reproducibility, the exact API model IDs used are listed below. Display names follow the paper; API IDs are the strings passed to each provider's API.
-
-**Synthetic data generation (Step 1)**
-
-| Display name | Provider | API ID |
-|--------------|----------|--------|
-| GPT-5.1 | OpenAI | `gpt-5.1` |
-| Claude Opus 4.5 | Anthropic | `claude-opus-4-5` |
-| Gemini 3.0 | Google | `gemini-3.0` |
-
-**Baseline analysis (Step 6)**
-
-| Display name | Provider | API ID |
-|--------------|----------|--------|
-| GPT-5.1 | OpenAI | `gpt-5.1` |
-| Claude Opus 4.5 | Anthropic | `claude-opus-4-5` |
-| Gemini 3.1 | Google | `gemini-3.1` |
-
-**Internal representation analysis (Steps 2–5)**
-
-| Display name | Source | Identifier |
-|--------------|--------|------------|
-| Gemma-2-Llama-Swallow-9b-pt-v0.1 | Hugging Face | [`tokyotech-llm/Gemma-2-Llama-Swallow-9b-pt-v0.1`](https://huggingface.co/tokyotech-llm/Gemma-2-Llama-Swallow-9b-pt-v0.1) |
-
-Note that synthetic data generation (Step 1) and baseline analysis (Step 6) use different Gemini versions (3.0 vs 3.1), matching the paper.
+FILE_LIST.txt and FILE_MANIFEST.json describe the revised distribution files,
+not the unchanged legacy data/ directory or Git metadata.

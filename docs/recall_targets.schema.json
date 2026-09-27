@@ -1,0 +1,43 @@
+{
+  "distribution_items": [
+    "analysis_group",
+    "election",
+    "issue",
+    "item_id",
+    "question_code",
+    "question_text",
+    "total_n",
+    "year"
+  ],
+  "truth": [
+    "analysis_group",
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "issue",
+    "item_id",
+    "missing",
+    "not_applicable_66",
+    "question_code",
+    "reported_missing_or_na",
+    "source_note",
+    "source_reference",
+    "source_url",
+    "total_n",
+    "year"
+  ],
+  "question_items": [
+    "canonical_question_text",
+    "election_type",
+    "expected_continuation",
+    "fixed_prefix",
+    "identifier_type",
+    "issue",
+    "item_id",
+    "question_identifier",
+    "source_reference",
+    "year"
+  ]
+}

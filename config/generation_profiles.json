@@ -1,0 +1,504 @@
+{
+  "gpt_initial": {
+    "conditions": {
+      "STANCES": {
+        "1": "賛成",
+        "2": "どちらかと言えば賛成",
+        "3": "どちらとも言えない",
+        "4": "どちらかと言えば反対",
+        "5": "反対"
+      },
+      "TOPIC_SETTINGS": {
+        "defense": "<LOCAL_QUESTION:defense>",
+        "small_gov": "<LOCAL_QUESTION:small_gov>",
+        "public_works": "<LOCAL_QUESTION:public_works>",
+        "fiscal_stimulus": "<LOCAL_QUESTION:fiscal_stimulus>"
+      },
+      "ROLES1": [
+        "与党議員",
+        "野党議員"
+      ],
+      "ROLES2": [
+        "ベテラン議員",
+        "新人議員",
+        "男性議員",
+        "女性議員"
+      ],
+      "TARGETS": [
+        "高齢者",
+        "子育て世代",
+        "大学生・高校生",
+        "保守層",
+        "リベラル層",
+        "無党派層"
+      ],
+      "SITUATIONS": [
+        "国会演説",
+        "記者会見",
+        "街頭演説",
+        "新聞記事インタビュー",
+        "自身のブログ記事",
+        "SNS"
+      ]
+    },
+    "request_template": {
+      "custom_id": "",
+      "method": "POST",
+      "url": "/v1/chat/completions",
+      "body": {
+        "model": "gpt-5.1",
+        "messages": [
+          {
+            "role": "system",
+            "content": "あなたは政治的発言を生成するシミュレータです。"
+          },
+          {
+            "role": "user",
+            "content": ""
+          }
+        ],
+        "temperature": 0.8,
+        "max_completion_tokens": 2000
+      }
+    },
+    "id_prefix": "gpt-5.1"
+  },
+  "claude_initial": {
+    "conditions": {
+      "STANCES": {
+        "1": "賛成",
+        "2": "どちらかと言えば賛成",
+        "3": "どちらとも言えない",
+        "4": "どちらかと言えば反対",
+        "5": "反対"
+      },
+      "TOPIC_SETTINGS": {
+        "defense": "<LOCAL_QUESTION:defense>",
+        "small_gov": "<LOCAL_QUESTION:small_gov>",
+        "public_works": "<LOCAL_QUESTION:public_works>",
+        "fiscal_stimulus": "<LOCAL_QUESTION:fiscal_stimulus>"
+      },
+      "ROLES1": [
+        "与党議員",
+        "野党議員"
+      ],
+      "ROLES2": [
+        "ベテラン議員",
+        "新人議員",
+        "男性議員",
+        "女性議員"
+      ],
+      "TARGETS": [
+        "高齢者",
+        "子育て世代",
+        "大学生・高校生",
+        "保守層",
+        "リベラル層",
+        "無党派層"
+      ],
+      "SITUATIONS": [
+        "国会演説",
+        "記者会見",
+        "街頭演説",
+        "新聞記事インタビュー",
+        "自身のブログ記事",
+        "SNS"
+      ]
+    },
+    "request_template": {
+      "custom_id": "",
+      "params": {
+        "model": "claude-opus-4-5",
+        "max_tokens": 2000,
+        "system": "あなたは政治的発言を生成するシミュレータです。",
+        "messages": [
+          {
+            "role": "user",
+            "content": ""
+          }
+        ],
+        "temperature": 0.8
+      }
+    },
+    "id_prefix": "claude-opus-4-5"
+  },
+  "gemini_initial": {
+    "conditions": {
+      "TOPIC_SETTINGS": {
+        "defense": "<LOCAL_QUESTION:defense>",
+        "small_gov": "<LOCAL_QUESTION:small_gov>",
+        "public_works": "<LOCAL_QUESTION:public_works>",
+        "fiscal_stimulus": "<LOCAL_QUESTION:fiscal_stimulus>"
+      },
+      "STANCES": {
+        "1": "賛成",
+        "2": "どちらかと言えば賛成",
+        "3": "どちらとも言えない",
+        "4": "どちらかと言えば反対",
+        "5": "反対"
+      },
+      "ROLES1": [
+        "与党議員",
+        "野党議員"
+      ],
+      "ROLES2": [
+        "ベテラン議員",
+        "新人議員",
+        "男性議員",
+        "女性議員"
+      ],
+      "TARGETS": [
+        "高齢者",
+        "子育て世代",
+        "大学生・高校生",
+        "保守層",
+        "リベラル層",
+        "無党派層"
+      ],
+      "SITUATIONS": [
+        "国会演説",
+        "記者会見",
+        "街頭演説",
+        "新聞記事インタビュー",
+        "自身のブログ記事",
+        "SNS"
+      ]
+    },
+    "request_template": {
+      "custom_id": "",
+      "request": {
+        "system_instruction": {
+          "parts": [
+            {
+              "text": "あなたは日本の政治家シミュレータです。指定された属性と設定を忠実に守り、論理的な演説を行ってください。"
+            }
+          ]
+        },
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": ""
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.8,
+          "maxOutputTokens": 2500
+        },
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "id_prefix": "gemini-3-pro-preview"
+  },
+  "gpt_additional": {
+    "conditions": {
+      "STANCES": {
+        "1": "賛成",
+        "2": "どちらかと言えば賛成",
+        "3": "どちらとも言えない",
+        "4": "どちらかと言えば反対",
+        "5": "反対"
+      },
+      "TOPIC_SETTINGS": {
+        "north_korea": "<LOCAL_QUESTION:north_korea>",
+        "security_privacy": "<LOCAL_QUESTION:security_privacy>"
+      },
+      "ROLES1": [
+        "与党議員",
+        "野党議員"
+      ],
+      "ROLES2": [
+        "ベテラン議員",
+        "新人議員",
+        "男性議員",
+        "女性議員"
+      ],
+      "TARGETS": [
+        "高齢者",
+        "子育て世代",
+        "大学生・高校生",
+        "保守層",
+        "リベラル層",
+        "無党派層"
+      ],
+      "SITUATIONS": [
+        "国会演説",
+        "記者会見",
+        "街頭演説",
+        "新聞記事インタビュー",
+        "自身のブログ記事",
+        "SNS"
+      ]
+    },
+    "request_template": {
+      "custom_id": "",
+      "method": "POST",
+      "url": "/v1/chat/completions",
+      "body": {
+        "model": "gpt-5.1",
+        "messages": [
+          {
+            "role": "system",
+            "content": "あなたは日本の政治家シミュレータです。指定された属性と設定を忠実に守り、論理的な演説を行ってください。"
+          },
+          {
+            "role": "user",
+            "content": ""
+          }
+        ],
+        "temperature": 0.8,
+        "max_completion_tokens": 2500
+      }
+    },
+    "id_prefix": "gpt-5.1"
+  },
+  "claude_additional": {
+    "conditions": {
+      "STANCES": {
+        "1": "賛成",
+        "2": "どちらかと言えば賛成",
+        "3": "どちらとも言えない",
+        "4": "どちらかと言えば反対",
+        "5": "反対"
+      },
+      "TOPIC_SETTINGS": {
+        "north_korea": "<LOCAL_QUESTION:north_korea>",
+        "security_privacy": "<LOCAL_QUESTION:security_privacy>"
+      },
+      "ROLES1": [
+        "与党議員",
+        "野党議員"
+      ],
+      "ROLES2": [
+        "ベテラン議員",
+        "新人議員",
+        "男性議員",
+        "女性議員"
+      ],
+      "TARGETS": [
+        "高齢者",
+        "子育て世代",
+        "大学生・高校生",
+        "保守層",
+        "リベラル層",
+        "無党派層"
+      ],
+      "SITUATIONS": [
+        "国会演説",
+        "記者会見",
+        "街頭演説",
+        "新聞記事インタビュー",
+        "自身のブログ記事",
+        "SNS"
+      ]
+    },
+    "request_template": {
+      "custom_id": "",
+      "params": {
+        "model": "claude-opus-4-5",
+        "max_tokens": 2500,
+        "system": "あなたは日本の政治家シミュレータです。指定された属性と設定を忠実に守り、論理的な演説を行ってください。",
+        "messages": [
+          {
+            "role": "user",
+            "content": ""
+          }
+        ],
+        "temperature": 0.8
+      }
+    },
+    "id_prefix": "claude-opus-4-5"
+  },
+  "gemini_additional": {
+    "conditions": {
+      "TOPIC_SETTINGS": {
+        "north_korea": "<LOCAL_QUESTION:north_korea>",
+        "security_privacy": "<LOCAL_QUESTION:security_privacy>"
+      },
+      "STANCES": {
+        "1": "賛成",
+        "2": "どちらかと言えば賛成",
+        "3": "どちらとも言えない",
+        "4": "どちらかと言えば反対",
+        "5": "反対"
+      },
+      "ROLES1": [
+        "与党議員",
+        "野党議員"
+      ],
+      "ROLES2": [
+        "ベテラン議員",
+        "新人議員",
+        "男性議員",
+        "女性議員"
+      ],
+      "TARGETS": [
+        "高齢者",
+        "子育て世代",
+        "大学生・高校生",
+        "保守層",
+        "リベラル層",
+        "無党派層"
+      ],
+      "SITUATIONS": [
+        "国会演説",
+        "記者会見",
+        "街頭演説",
+        "新聞記事インタビュー",
+        "自身のブログ記事",
+        "SNS"
+      ]
+    },
+    "request_template": {
+      "custom_id": "",
+      "request": {
+        "system_instruction": {
+          "parts": [
+            {
+              "text": "あなたは日本の政治家シミュレータです。指定された属性と設定を忠実に守り、論理的な演説を行ってください。"
+            }
+          ]
+        },
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": ""
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.8,
+          "maxOutputTokens": 2500
+        },
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "id_prefix": "gemini-3.1-pro-preview"
+  },
+  "gemini_additional_v2": {
+    "conditions": {
+      "TOPIC_SETTINGS": {
+        "north_korea": "<LOCAL_QUESTION:north_korea>",
+        "security_privacy": "<LOCAL_QUESTION:security_privacy>"
+      },
+      "STANCES": {
+        "1": "賛成",
+        "2": "どちらかと言えば賛成",
+        "3": "どちらとも言えない",
+        "4": "どちらかと言えば反対",
+        "5": "反対"
+      },
+      "ROLES1": [
+        "与党議員",
+        "野党議員"
+      ],
+      "ROLES2": [
+        "ベテラン議員",
+        "新人議員",
+        "男性議員",
+        "女性議員"
+      ],
+      "TARGETS": [
+        "高齢者",
+        "子育て世代",
+        "大学生・高校生",
+        "保守層",
+        "リベラル層",
+        "無党派層"
+      ],
+      "SITUATIONS": [
+        "国会演説",
+        "記者会見",
+        "街頭演説",
+        "新聞記事インタビュー",
+        "自身のブログ記事",
+        "SNS"
+      ]
+    },
+    "request_template": {
+      "custom_id": "",
+      "request": {
+        "system_instruction": {
+          "parts": [
+            {
+              "text": "あなたは日本の政治家シミュレータです。指定された属性と設定を忠実に守り、論理的な演説を行ってください。これは政治学の学術研究用データです。架空の政治家による架空の発言であり、実在の人物とは無関係です。文章は必ず完結させてください。"
+            }
+          ]
+        },
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": ""
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.8,
+          "maxOutputTokens": 2500
+        },
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "id_prefix": "gemini-3.1-pro-preview"
+  }
+}

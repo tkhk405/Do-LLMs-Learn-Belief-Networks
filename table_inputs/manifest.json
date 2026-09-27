@@ -1,0 +1,52 @@
+[
+  {
+    "file": "gemma/matrix_comparisons.csv",
+    "sha256": "bbc427e32009776ea3db6838a7e53577f14dce8a27b55635d5ad1062f704bace",
+    "rows": 5
+  },
+  {
+    "file": "gemma/sensitivity_summary.csv",
+    "sha256": "4ebcdb65c582ea3f5db5b397dab2b7ef6965160030b8ff5f9bf447ef001fb7d4",
+    "rows": 4
+  },
+  {
+    "file": "llama/matrix_comparisons.csv",
+    "sha256": "1f93a8c5e89519e8cf652d1e60598c76d8e87784e309135bd95221fce90c357f",
+    "rows": 5
+  },
+  {
+    "file": "llama/sensitivity_summary.csv",
+    "sha256": "331ab6bbb4d4851ea19a1cd8ff0f68befcfc59b961f294c56ca5f7df08326881",
+    "rows": 4
+  },
+  {
+    "file": "party/llm_comparisons.csv",
+    "sha256": "3937429407f0a44440d8532aac7fb74ef9708a90055c862cb471d7a28abc8c7d",
+    "rows": 12
+  },
+  {
+    "file": "periods/between_period_results.csv",
+    "sha256": "683bcdb2c8b99cbc2f8d1586537caef646487807a76b9139f5e9a316ac6486d5",
+    "rows": 6
+  },
+  {
+    "file": "periods/gemma_period_comparisons.csv",
+    "sha256": "10350709e63d0fa96eb538f7e98bad829a7c0dc4da8f1bead19828b56e507bda",
+    "rows": 12
+  },
+  {
+    "file": "release/comparisons.csv",
+    "sha256": "bd66cdbcdcb5ff9c5f76fa0e1293dff875f4e955cda39fa2f4abd7245a5a1db4",
+    "rows": 8
+  },
+  {
+    "file": "recall/distribution_summary.csv",
+    "sha256": "ced767b7c2cf22c8d111e634e4d09894e31dd9463eaab6d0e9692808d8bf1355",
+    "rows": 2
+  },
+  {
+    "file": "recall/question_summary.csv",
+    "sha256": "86f03dc025de25df70c545e1b56b45723079b6fcf81b7c21c257c08f49f8e67a",
+    "rows": 2
+  }
+]

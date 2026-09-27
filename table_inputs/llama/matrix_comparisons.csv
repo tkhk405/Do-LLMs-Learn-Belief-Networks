@@ -1,0 +1,6 @@
+model,comparison,rho,p_one_sided,extreme_permutations,permutations,issue_pairs,utas_records
+llama,transfer_vs_cosine,0.9392857142857142,0.001388888888888889,1,720,15,
+llama,transfer_vs_utas_elected,0.7749999999999999,0.002777777777777778,2,720,15,4323.0
+llama,cosine_vs_utas_elected,0.6714285714285713,0.005555555555555556,4,720,15,4323.0
+llama,transfer_vs_utas_all_candidates,0.4928571428571427,0.07777777777777778,56,720,15,12099.0
+llama,cosine_vs_utas_all_candidates,0.41785714285714276,0.13194444444444445,95,720,15,12099.0

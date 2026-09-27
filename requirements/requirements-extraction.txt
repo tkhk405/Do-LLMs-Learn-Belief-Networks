@@ -1,0 +1,9 @@
+# GPU environment recorded for the analyzed Llama extraction.
+# Install the appropriate CUDA PyTorch build separately; see ../docs/extraction.md.
+transformers==4.57.1
+tokenizers==0.22.2
+accelerate==1.14.0
+bitsandbytes==0.50.2
+numpy==2.1.3
+pandas
+tqdm

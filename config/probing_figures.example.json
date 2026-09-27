@@ -1,0 +1,14 @@
+{
+  "gemma": {
+    "rho_dir": "path/to/gemma/rho_dir",
+    "labels_dir": "path/to/gemma/labels_dir",
+    "predictions_dir": "path/to/gemma/predictions_dir"
+  },
+  "llama": {
+    "rho_dir": "path/to/llama/rho_dir",
+    "labels_dir": "path/to/llama/labels_dir",
+    "predictions_dir": "path/to/llama/predictions_dir",
+    "prediction_format": "layer_npz",
+    "top20_dir": "path/to/llama/top20_dir"
+  }
+}

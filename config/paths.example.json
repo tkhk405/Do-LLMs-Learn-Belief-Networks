@@ -1,0 +1,10 @@
+{
+  "synthetic_statements_dir": "",
+  "utas_elected_csv": "",
+  "utas_all_candidates_csv": "",
+  "gemma_activations_dir": "",
+  "llama_activations_dir": "",
+  "gemma_results_dir": "",
+  "llama_results_dir": "",
+  "output_dir": "results"
+}

@@ -1,0 +1,13 @@
+heldout_generator,comparison,mantel_spearman,p_one_sided
+GPT,target-standardized transfer vs pooled original transfer,0.982142857142857,0.002777777777777778
+GPT,target-standardized transfer vs UTAS elected,0.8607142857142854,0.002777777777777778
+GPT,target-standardized transfer vs UTAS all candidates,0.6392857142857141,0.019444444444444445
+Claude,target-standardized transfer vs pooled original transfer,1.0,0.001388888888888889
+Claude,target-standardized transfer vs UTAS elected,0.8678571428571429,0.002777777777777778
+Claude,target-standardized transfer vs UTAS all candidates,0.6107142857142855,0.022222222222222223
+Gemini,target-standardized transfer vs pooled original transfer,0.9464285714285712,0.001388888888888889
+Gemini,target-standardized transfer vs UTAS elected,0.7499999999999999,0.004166666666666667
+Gemini,target-standardized transfer vs UTAS all candidates,0.532142857142857,0.04861111111111111
+THREE_FOLD_MEAN,target-standardized transfer vs pooled original transfer,0.982142857142857,0.001388888888888889
+THREE_FOLD_MEAN,target-standardized transfer vs UTAS elected,0.825,0.004166666666666667
+THREE_FOLD_MEAN,target-standardized transfer vs UTAS all candidates,0.6,0.025

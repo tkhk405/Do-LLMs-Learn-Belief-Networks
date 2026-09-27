@@ -1,0 +1,5 @@
+# Data-preparation environment used for verification (Python 3.12)
+numpy==1.26.4
+pandas==3.0.1
+scipy==1.13.1
+openpyxl==3.1.5

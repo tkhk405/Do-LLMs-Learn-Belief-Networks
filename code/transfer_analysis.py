@@ -1,158 +1,58 @@
-"""
-Cross-Domain Transfer Performance Analysis
-
-Evaluate how well probing coefficients learned on one policy issue
-transfer to predicting stances on another issue.
-
-- Top 20 heads: Selected by average Spearman correlation across 6 issues
-- Transfer metric: Spearman correlation between linear score (X @ W)
-  and ground-truth labels (thresholds are not used)
-
-Usage:
-    python probing.py             # Run probing analysis first
-    python transfer_analysis.py
-"""
-
+"""Compute directional transfer using common top-20 heads; does not refit probes."""
 import os
-import numpy as np
-import pandas as pd
+for key in ['OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS','VECLIB_MAXIMUM_THREADS','NUMEXPR_NUM_THREADS']:os.environ[key]='1'
+from pathlib import Path
+import argparse,json,importlib.metadata
+import numpy as np,pandas as pd
 from scipy.stats import spearmanr
-from sklearn.preprocessing import StandardScaler
-from tqdm import tqdm
+from common.constants import ISSUES,THEMES
+from common.configuration import load_paths
+from common.data_loading import load_statements
+from common.checkpoints import sha,activation_files,start_run,atomic_cache
 
-np.random.seed(42)
+def calculate_layer(model,files,frames,coefficients,layer,heads):
+    from sklearn.preprocessing import StandardScaler
+    values=np.full((len(heads),6,6),np.nan)
+    for ti,target in enumerate(ISSUES):
+        raw=np.load(files[target],mmap_mode='r');labels=frames[target].Stance_Value.to_numpy(int)
+        if len(raw)!=len(labels):raise ValueError('Activation row count mismatch')
+        for h in sorted(heads):
+            x=np.asarray(raw[:,h,:],dtype=np.float64) if model=='llama' else np.asarray(raw[:,h,:])
+            if not np.isfinite(x).all():raise ValueError('Nonfinite activation')
+            scaled=StandardScaler().fit_transform(x)
+            for si,source in enumerate(ISSUES):values[heads.index(h),si,ti]=spearmanr(labels,scaled@coefficients[source][layer,h]).statistic
+    if not np.isfinite(values).all():raise ValueError('Invalid transfer output')
+    return values
 
-# ==============================================================================
-# Path settings
-# ==============================================================================
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+def aggregate(rows,output):
+    long=pd.DataFrame(rows);matrix=long.groupby(['source','target'],sort=False).rho.mean().unstack().loc[ISSUES,ISSUES]
+    matrix.to_csv(output/'transfer_directional.csv');((matrix+matrix.T)/2).to_csv(output/'transfer_symmetric.csv');long.to_csv(output/'transfer_per_head.csv',index=False)
+    return matrix
 
-INPUT_DIR = os.path.join(REPO_ROOT, "data")
-VEC_DIR = os.path.join(REPO_ROOT, "output", "activation_vectors")
-PROBING_DIR = os.path.join(REPO_ROOT, "output", "probing_results", "full")
-RESULT_DIR = os.path.join(REPO_ROOT, "output", "transfer_results")
-
-def ensure_result_dir():
-    os.makedirs(RESULT_DIR, exist_ok=True)
-
-# ==============================================================================
-# Dataset definitions (6 policy issues)
-# ==============================================================================
-# (CSV filename, vector prefix, probing result prefix)
-DATASETS = {
-    "Defense":         ("defense.csv",         "Defense",  "Defense"),
-    "Social Welfare":  ("social_welfare.csv",  "Social",   "Social"),
-    "Public Works":    ("public_works.csv",    "Public",   "Public"),
-    "Fiscal Stimulus": ("fiscal_stimulus.csv", "Fiscal",   "Fiscal"),
-    "North Korea":     ("north_korea.csv",     "Nkorea",   "Nkorea"),
-    "Security":        ("public_safety.csv",   "Security", "Security"),
-}
-
-NUM_LAYERS = 42
-NUM_HEADS = 16
-TOP_N = 20
-
-# ==============================================================================
-# Select top 20 heads (by average score across 6 issues)
-# ==============================================================================
-def select_top_heads():
-    rho_data = {}
-    for theme, (_, _, save_prefix) in DATASETS.items():
-        rho_path = os.path.join(PROBING_DIR, f"{save_prefix}_heatmap_rho_full.npy")
-        rho_data[theme] = np.load(rho_path)
-
-    avg_rho = np.mean(list(rho_data.values()), axis=0)  # (42, 16)
-    flat_indices = np.argsort(avg_rho.flatten())[::-1][:TOP_N]
-    top_heads = [(idx // NUM_HEADS, idx % NUM_HEADS) for idx in flat_indices]
-    used_layers = sorted(set(l for l, h in top_heads))
-    return top_heads, used_layers
-
-def load_labels_and_coefficients():
-    labels_map = {}
-    masks_map = {}
-    coef_data = {}
-
-    for theme, (csv_file, _, save_prefix) in DATASETS.items():
-        df = pd.read_csv(os.path.join(INPUT_DIR, csv_file))
-        valid_mask = df['Stance_Value'].isin([1, 2, 3, 4, 5]).values
-        masks_map[theme] = valid_mask
-        labels_map[theme] = df.loc[valid_mask, 'Stance_Value'].astype(float).values
-
-        coef_path = os.path.join(PROBING_DIR, f"{save_prefix}_coef_full.npy")
-        coef_data[theme] = np.load(coef_path)
-
-    return labels_map, masks_map, coef_data
-
-def compute_transfer_matrix(top_heads, used_layers, labels_map, masks_map, coef_data):
-    themes_list = list(DATASETS.keys())
-    cross_scores = {(src, tgt): [] for src in themes_list for tgt in themes_list}
-    score_rows = []
-
-    for layer_idx in tqdm(used_layers, desc="Layers"):
-        heads_in_layer = [h for l, h in top_heads if l == layer_idx]
-
-        # Load activation vectors
-        layer_vecs = {}
-        for theme, (_, vec_prefix, _) in DATASETS.items():
-            vec_path = os.path.join(VEC_DIR, f"{vec_prefix}_layer_{layer_idx:02d}.npy")
-            full_vec = np.load(vec_path)
-            layer_vecs[theme] = full_vec[masks_map[theme]]
-
-        # Apply source coefficients to target vectors
-        for src in themes_list:
-            W = coef_data[src][layer_idx]
-
-            for tgt in themes_list:
-                X = layer_vecs[tgt]
-                y_true = labels_map[tgt]
-
-                for h in heads_in_layer:
-                    scaler = StandardScaler()
-                    X_h_scaled = scaler.fit_transform(X[:, h, :])
-                    y_pred = X_h_scaled @ W[h]
-
-                    if np.std(y_pred) > 0:
-                        rho, _ = spearmanr(y_true, y_pred)
-                        if not np.isnan(rho):
-                            cross_scores[(src, tgt)].append(rho)
-                            score_rows.append({
-                                "source": src,
-                                "target": tgt,
-                                "layer": layer_idx,
-                                "head": h,
-                                "rho": rho,
-                            })
-
-    transfer_matrix = pd.DataFrame(index=themes_list, columns=themes_list, dtype=float)
-
-    for (src, tgt), scores in cross_scores.items():
-        if scores:
-            transfer_matrix.loc[src, tgt] = np.mean(scores)
-
-    score_df = pd.DataFrame(score_rows)
-    return transfer_matrix, score_df
+def run(a):
+    paths=load_paths(a.config);frames,sources=load_statements(paths['synthetic_statements_dir'])
+    selected=pd.read_csv(a.heads/'common_top20_heads.csv');heads=list(zip(selected.layer.astype(int),selected['head'].astype(int)))
+    if len(heads)!=20 or len(set(heads))!=20:raise ValueError('Exactly 20 distinct transfer heads required')
+    coefficients={};signature={'model':a.model,'script':sha(Path(__file__)),'common':sha(a.heads/'common_top20_heads.csv'),'inputs':{},'versions':{k:importlib.metadata.version(k) for k in ['numpy','pandas','scipy','scikit-learn']}}
+    signature['shared']={n:sha(Path(__file__).parent/'common'/n) for n in ['constants.py','configuration.py','data_loading.py','checkpoints.py']}
+    for issue,c in THEMES.items():
+        p=a.scores/f'{c["prefix"]}_coef_full.npy';coefficients[issue]=np.load(p,mmap_mode='r');signature['inputs'][p.name]=sha(p);signature['inputs'][issue]=sha(sources[issue])
+    start_run(a.output,signature);rows=[];layers=sorted({l for l,h in heads})
+    for layer in layers:
+        selected_heads=[h for l,h in heads if l==layer];files=activation_files(paths,a.model,layer);hashes=json.dumps({k:sha(v) for k,v in files.items()},sort_keys=True);cache=a.output/f'layer_{layer:02d}.npz'
+        if cache.exists():
+            with np.load(cache) as z:
+                if str(z['inputs'].item())!=hashes:raise ValueError('Activation hash changed')
+                values=z['transfer']
+        else:
+            values=calculate_layer(a.model,files,frames,coefficients,layer,selected_heads);atomic_cache(cache,inputs=hashes,transfer=values)
+        if values.shape!=(len(selected_heads),6,6) or not np.isfinite(values).all():raise ValueError('Invalid transfer cache')
+        for k,h in enumerate(selected_heads):
+            for si,s in enumerate(ISSUES):
+                for ti,t in enumerate(ISSUES):rows.append({'source':s,'target':t,'layer':layer,'head':h,'rho':values[k,si,ti]})
+        print(f'{a.model}: layer {layer} complete ({layers.index(layer)+1}/{len(layers)})',flush=True)
+    aggregate(rows,a.output)
 
 def main():
-    ensure_result_dir()
-    top_heads, used_layers = select_top_heads()
-    print(f"Top {TOP_N} heads (layers used: {used_layers})")
-
-    labels_map, masks_map, coef_data = load_labels_and_coefficients()
-    transfer_matrix, score_df = compute_transfer_matrix(
-        top_heads, used_layers, labels_map, masks_map, coef_data
-    )
-
-    print("\nTransfer performance matrix:")
-    print(transfer_matrix.to_string())
-
-    csv_path = os.path.join(RESULT_DIR, "transfer_matrix.csv")
-    transfer_matrix.to_csv(csv_path, encoding='utf-8-sig')
-    print(f"\nSaved: {csv_path}")
-
-    score_path = os.path.join(RESULT_DIR, "transfer_head_scores.csv")
-    score_df.to_csv(score_path, index=False, encoding='utf-8-sig')
-    print(f"Saved: {score_path}")
-
-if __name__ == "__main__":
-    main()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--model',choices=['gemma','llama'],required=True);p.add_argument('--config');p.add_argument('--scores',type=Path,required=True);p.add_argument('--heads',type=Path,required=True);p.add_argument('--output',type=Path,required=True);run(p.parse_args())
+if __name__=='__main__':main()

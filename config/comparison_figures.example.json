@@ -1,0 +1,17 @@
+{
+  "gemma": {
+    "transfer": "path/to/gemma_transfer.csv",
+    "cosine": "path/to/gemma_cosine.csv",
+    "elected": "path/to/gemma_elected.csv",
+    "all_candidates": "path/to/gemma_all_candidates.csv",
+    "output": "path/to/gemma_output.csv"
+  },
+  "llama": {
+    "transfer": "path/to/llama_transfer.csv",
+    "cosine": "path/to/llama_cosine.csv",
+    "elected": "path/to/llama_elected.csv",
+    "all_candidates": "path/to/llama_all_candidates.csv",
+    "output": "path/to/llama_output.csv",
+    "symmetric": "path/to/llama_symmetric.csv"
+  }
+}

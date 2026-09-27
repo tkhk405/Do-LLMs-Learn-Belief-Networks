@@ -1,0 +1,17 @@
+{
+  "gemma": {
+    "layers": 42,
+    "heads": 16,
+    "head_dim": 256,
+    "model_revision": null
+  },
+  "llama": {
+    "layers": 32,
+    "heads": 32,
+    "head_dim": 128,
+    "model_revision": "9392cd19c931ab816c56ecce32abe26ba001f320"
+  },
+  "batch_size": 8,
+  "max_length": 4096,
+  "padding_side": "left"
+}

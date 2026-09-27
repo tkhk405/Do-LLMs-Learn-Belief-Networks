@@ -1,4 +1,8 @@
-output/
 __pycache__/
 *.pyc
+.venv/
+config/*.local.json
+data/
+output/
+results/
 .DS_Store
