@@ -27,7 +27,7 @@ def _learning_dependencies():
 
 
 
-# 1. Model-specific fitting. Numerical bodies preserved.
+# 1. Model-specific fitting. Successful-fit arithmetic is preserved.
 
 def _spearman_gemma(y_true, y_pred):
     """全データをそのまま使用してスピアマン相関を計算。"""
@@ -52,7 +52,7 @@ def fit_head_gemma(h_idx, layer_data, labels_ordinal, ALPHAS):
     # ★StratifiedKFoldに変更：各foldでラベル分布を維持
     kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-    for train_idx, val_idx in kf.split(X, y):
+    for fold, (train_idx, val_idx) in enumerate(kf.split(X, y), start=1):
         X_train, X_val = X[train_idx], X[val_idx]
         y_train, y_val = y[train_idx], y[val_idx]
 
@@ -67,8 +67,8 @@ def fit_head_gemma(h_idx, layer_data, labels_ordinal, ALPHAS):
             try:
                 model.fit(X_train_scaled, y_train)
                 y_pred_val = model.predict(X_val_scaled)
-            except Exception:
-                continue
+            except Exception as exc:
+                raise RuntimeError(f"Probe CV failed: head={h_idx}, fold={fold}, alpha={alpha}") from exc
 
             oof_preds_temp[alpha][val_idx] = y_pred_val
 
@@ -87,8 +87,7 @@ def fit_head_gemma(h_idx, layer_data, labels_ordinal, ALPHAS):
 
     # ベストスコア決定
     if all(np.isnan(v) for v in avg_scores.values()):
-        best_alpha = ALPHAS[0]
-        best_score = 0.0
+        raise RuntimeError(f"No valid CV score: head={h_idx}")
     else:
         valid_scores = {k: v for k, v in avg_scores.items() if not np.isnan(v)}
         if valid_scores:
@@ -112,12 +111,14 @@ def fit_head_gemma(h_idx, layer_data, labels_ordinal, ALPHAS):
         # ★LogisticATはtheta_を持つ（学習されたしきい値）
         if hasattr(final_model, 'theta_') and final_model.theta_ is not None:
             theta = final_model.theta_
-    except Exception:
-        pass
+    except Exception as exc:
+        raise RuntimeError(f"Final probe fit failed: head={h_idx}, alpha={best_alpha}") from exc
 
     # OOF予測（元スケール）
     oof_preds = oof_preds_temp[best_alpha] + 1
 
+    if not (np.isfinite(coef).all() and np.isfinite(theta).all() and np.isfinite(oof_preds).all()):
+        raise RuntimeError(f"Non-finite probe output: head={h_idx}")
     return h_idx, best_score, best_alpha, coef, theta, oof_preds
 
 def _spearman_llama(y_true, y_pred):
