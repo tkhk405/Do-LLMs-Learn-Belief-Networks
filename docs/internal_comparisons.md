@@ -10,6 +10,8 @@ python code/transfer_analysis.py --model gemma --config config/paths.local.json 
 
 共通上位20ヘッドの各々について、転移先の活性値をStandardScalerで標準化し、転移元の係数との内積と転移先ラベルのSpearman相関を計算する。ヘッド平均を取り、方向付き行列と対称化した行列を保存する。順序尺度の閾値は使わない。Gemmaは元dtype、Llamaはfloat64の入力処理を維持する。
 
+標準化の平均と標準偏差は、層・ヘッド・転移先争点ごとに、その転移先争点の全発言から成分別に求める（`StandardScaler().fit_transform(x)`）。転移元争点の学習時の平均・標準偏差は、この転移計算には使用しない。標準化には転移先のラベルを使わず、ラベルはその後のSpearman相関の計算に用いる。学習済みの転移元係数は再学習せずに適用する。標準偏差はddof=0で計算され、分散がゼロの成分ではStandardScalerの既定処理によりスケールを1とする。
+
 出力：transfer_directional.csv、transfer_symmetric.csv、transfer_per_head.csv、層別キャッシュ、run.json。
 
 ## cosine_similarity.py
