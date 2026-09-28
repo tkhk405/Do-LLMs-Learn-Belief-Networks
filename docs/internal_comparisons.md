@@ -31,6 +31,8 @@ python code/mantel_test.py compare --model gemma --config config/paths.local.jso
 python code/mantel_test.py figures --inputs /path/to/comparison_inputs/inputs.json --output output/internal_comparison_figures
 ```
 
+UTASの対象者選択では、1～5以外の回答を欠損として扱う。2004年は治安維持が構造的欠損であるため残り5争点すべてに有効回答がある人を、それ以外の年は6争点すべてに有効回答がある人を残す。この処理を当選議員と全候補者の各入力に適用する。選択後のSpearman相関は各争点ペアに有効な回答から計算するため、2004年の回答者は治安維持を含まないペアには含まれ、治安維持を含むペアからは除かれる。欠損値の補完は行わない。実装は`code/common/data_loading.py`の`clean_utas_frame`と`code/common/statistics.py`の`utas_matrix`を参照。
+
 compareはローカルUTASを規定どおり整形し、転移・コサイン相互、当選議員・全候補者との比較を計算する。転移を対称化し、上三角15要素を使う。片側検定は全720置換（恒等置換を含み、+1補正なし）。
 
 figuresは保存済み行列からFig4〜6、S6・S7・S10 Figを作る。Fig1/S1 Figは後続のsilicon_sampling.pyの担当で、このコードでは生成しない。既存inputs.jsonのoutput欄は不要で、存在しても読み込まない。Llamaの保存済み対称行列は微小な数値精度も保つため引き続き指定できる。
