@@ -70,10 +70,15 @@ must be supplied where required; the code does not choose a substitute model.
 - table_inputs/: aggregate numerical summaries for table export.
 - config/: settings, examples and the study's attribute mappings.
 
-Official UTAS records, question wording/translations, target counts,
-respondent-linked generated answers, synthetic statement text, manuscript sources,
-API credentials and model weights are excluded. Full recalculation requires locally
-supplied inputs; see [local inputs](docs/local_inputs.md). Saved-result reproduction
+The numerical inputs listed above are the newly assembled distribution. The repository
+also retains synthetic political statement text in `data/` from the earlier version;
+see [Earlier repository version](#earlier-repository-version) below. The saved-result
+commands above do not read `data/`.
+
+Official UTAS source records, question wording/translations, target counts,
+respondent-linked generated answers, manuscript sources, API credentials and model
+weights are not bundled. Full recalculation requires additional locally supplied
+inputs; see [local inputs](docs/local_inputs.md). Saved-result reproduction
 does not constitute a new full training or generation run.
 
 Code licensing is stated in LICENSE. Third-party materials are not relicensed;

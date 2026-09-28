@@ -15,11 +15,14 @@ JSON interfaces illustrated in config/. Recall preparation requires a local
 --targets JSON with distribution_items, question_items and truth for the original
 95-item target set. Provide original target counts and question texts locally.
 
-Full extraction/probing requires the original ordered statement corpora, labels
-and model weights. Synthetic statement text, respondent-linked generated responses,
-recall logs and official target counts are not bundled. Saved numerical files
-support rendering and aggregation, not regeneration of these excluded source texts.
-Fresh stochastic generation is not expected to reproduce identical historical text.
+Full extraction/probing requires statement corpora and labels in the original row
+order, along with model weights. The repository retains synthetic political statement
+text in `data/` from the earlier version. Those CSV files are separate from the new
+saved numerical inputs and are not used by the saved-result reproduction commands.
+The model weights, respondent-linked generated responses used for silicon sampling,
+recall logs, original generation workbooks and official target counts are not bundled.
+Saved numerical files support rendering and aggregation; they do not regenerate source
+texts. Fresh stochastic generation is not expected to reproduce identical historical text.
 
 Supply API credentials in a private JSON file using --keys. Do not commit that
 file. API/GPU execution is separate from saved-result reproduction and requires

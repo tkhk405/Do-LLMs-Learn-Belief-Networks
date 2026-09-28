@@ -22,4 +22,4 @@ python code/generate_synthetic_data.py assemble --sources /local/corpus_sources.
 
 `assemble` reconstructs the historical analyzed corpus from final workbooks using `config/corpus_row_map.csv`. It requires matching text hashes and preserves all 25,920 rows and their order. It is not a collector for an arbitrary newly generated corpus. A sources example is supplied in `config/corpus_sources.example.json`.
 
-All generated text, official local question strings and local workbooks remain subject to the established public-scope separation; this consolidation does not add them to the distribution.
+The repository retains synthetic political statement CSV files in `data/` from the earlier version. These are separate from the newly assembled numerical inputs used by the saved-result commands. Original generation workbooks, API response logs and the local question JSON required by the commands above are not bundled. The `assemble` operation requires those local workbooks; the retained `data/` CSV files are not workbook inputs for that operation.
